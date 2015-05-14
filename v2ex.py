@@ -16,9 +16,9 @@ class Main(Wox):
 
     def query(self, param):
         if param.strip() == 'h':
-            news = requests.get(HOT).json()
+            news = requests.get(HOT, proxies = self.__get_proxies()).json()
         else:
-            news = requests.get(LATEST).json()
+            news = requests.get(LATEST, proxies = self.__get_proxies()).json()
 
         for i in news:
             avatar = i['node']['avatar_large']
@@ -47,6 +47,13 @@ class Main(Wox):
     def open_url(self, url):
         webbrowser.open(url)
 
+    def __get_proxies(self):
+      proxies = {}
+      if self.proxy and self.proxy.get("enabled") and self.proxy.get("server"):
+          proxies["http"] = "http://{}:{}".format(self.proxy.get("server"), self.proxy.get("port"))
+          proxies["https"] = "http://{}:{}".format(self.proxy.get("server"), self.proxy.get("port"))
+      return proxies
+
     def __get_node_img(self, imgs):
         url = 0
         name = 1
@@ -60,7 +67,7 @@ class Main(Wox):
         imgs = filter(lambda i: i[name] not in existed, imgs)
 
         def download(img):
-            r = requests.get(img[url], stream=True)
+            r = requests.get(img[url], stream=True, proxies=self.__get_proxies())
             if r.status_code == 200:
                 with open(os.path.join(d, img[name]), 'wb') as f:
                     r.raw.decode_content = True
